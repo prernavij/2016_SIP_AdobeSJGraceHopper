@@ -1,0 +1,201 @@
+import pygame
+import random
+
+    
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+
+class Block(pygame.sprite.Sprite):
+
+    def __init__(self, color, width, height):
+        super().__init__()
+
+        self.image = pygame.Surface([width, height])
+        self.image.fill(color)
+
+        self.rect = self.image.get_rect()
+        self.rect.x = screen_width
+
+    def update(self):
+        self.rect.x -= 3
+        if self.rect.x < 0:
+            self.rect.y = random.randrange(0, screen_height)
+            self.rect.x = screen_width + 10
+
+
+pygame.init()
+screen_width = 700
+screen_height = 500
+screen = pygame.display.set_mode([screen_width, screen_height])
+
+#initializing the list containing black blocks
+blue_block_list = pygame.sprite.Group()
+
+#initializing the list containing green blocks
+red_block_list = pygame.sprite.Group()
+
+#initializing the list containing ALL the blocks
+all_sprites_list = pygame.sprite.Group()
+
+
+#initialize the player block here!
+player = Block(BLACK, 20, 15)
+
+game = True
+
+def make_blocks():
+
+    #add the player to the list it should be in
+    all_sprites_list.add(player)
+
+    #make 50 black blocks and 50 green blocks
+    for i in range(50):
+        #initalize a red block
+        red_block = Block(RED, 20, 15)
+        
+        #initialize the x and y for the green block
+        red_block.rect.x = random.randrange(0, screen_width)
+        red_block.rect.y = random.randrange(0, screen_height)
+
+        #add the blocks to ALL the lists they should be in
+        red_block_list.add(red_block)
+        all_sprites_list.add(red_block)
+
+    #=========== IF STATEMENT  =======================
+    numbers = [10, 20, 35]
+    if game == True:
+        for i in range(numbers[1]):
+            blue_block = Block(BLUE, 20, 15)
+            blue_block.rect.x = random.randrange(0, screen_width)
+            blue_block.rect.y = random.randrange(0, screen_height)
+            blue_block_list.add(blue_block)
+            all_sprites_list.add(blue_block)
+        
+
+done = True
+
+clock = pygame.time.Clock()
+
+#initialize the value of score
+score = 0 
+
+#initialize the number of lives
+lives = 5
+
+
+
+## Font to allow for 
+font = pygame.font.SysFont("Gill Sans", 25, True, False)
+
+
+#Call the function here that will create the blocks you want
+make_blocks()
+
+
+
+
+# Variable to check if pressing r will start game
+can_restart = False
+
+while done:    
+    for event in pygame.event.get(): 
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_r:
+                score = 0
+                lives = 5
+                all_sprites_list.empty()
+                make_blocks()
+                can_restart = False
+
+ 
+ 
+    # Clear the screen
+    screen.fill(WHITE)
+ 
+    # Get the current mouse position. This returns the position
+    # as a list of two numbers.
+    pos = pygame.mouse.get_pos()
+   
+    # Fetch the x and y out of the list,
+       # just like we'd fetch letters out of a string.
+    # Set the player object to the mouse location
+    player.rect.x = pos[0]
+    player.rect.y = pos[1]
+ 
+    # Write the code to see if the player block has collided with anything
+    # Check if it collides with black blocks
+    # Check if it collided with green blocks
+    # pygame.sprite.spritecollide might be VERY helpful. look at the example
+    collided_blocks_b = pygame.sprite.spritecollide(player, blue_block_list, True)
+    collided_blocks_r = pygame.sprite.spritecollide(player, red_block_list, True)
+    
+        
+
+
+    # Write the code to move the blocks.
+    for blue in blue_block_list:
+        if can_restart == True:
+            break
+        else:
+            blue.update()
+            
+
+    for red in red_block_list:
+        if can_restart == True:
+            break
+        else:
+            red.update()
+        
+  
+    
+ 
+    # Update score here
+    # Update lives here
+    # Collision with a certain sprite means the lives should go down
+    # Collision with a certain sprite means the score should go up
+    for block in collided_blocks_r:
+            lives -= 1
+    for block in collided_blocks_b:
+            score += 1
+            
+    
+    instructions = font.render("Try to catch the good thoughts (blue). Avoid the bad ones (red).", True, BLACK)
+    start = font.render("Press 'r' to start the game. You use the mouse to allow your character to catch things", True, BLACK)
+    strt = screen.blit(start, [100, 350])
+    instr = screen.blit(instructions, [75, 250])
+    
+    screen.fill(WHITE) 
+
+    score_text = font.render("Score: " +str(score), True, GREEN)
+
+    lives_text = font.render("Lives: "+ str(lives), True, GREEN)
+
+    screen.blit(score_text, [500, 50])
+
+    screen.blit(lives_text, [50, 50])
+
+#=========== How the game ends =============
+    if lives < 1:
+        score = 0
+        lives = 0
+        game_over = font.render("I'll never be able to beat this game...", True, BLACK)  
+        screen.blit(game_over, [150, 250])
+        
+#===========================================
+
+     
+    # Draw all the sprites
+    all_sprites_list.draw(screen)
+ 
+    # Go ahead and update the screen with what we've drawn.
+    pygame.display.flip()
+ 
+    # Limit to 60 frames per second
+    clock.tick(60)
+
+pygame.quit()
+exit()
+
